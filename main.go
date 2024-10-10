@@ -1,25 +1,83 @@
 package main
 
 import (
-  "fmt"
+	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	"os"
 )
 
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
-
-func main() {
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-  // to see how GoLand suggests fixing it.
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
-
-  for i := 1; i <= 5; i++ {
-	//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session, 
-	// right-click your code in the editor and select the <b>Debug</b> option. 
-	fmt.Println("i =", 100/i)
-  }
+type model struct {
+	choices  []string
+	cursor   int
+	selected map[int]struct{}
 }
 
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
+func initialModel() model {
+	return model{
+		choices:  []string{"1", "2", "3"},
+		selected: make(map[int]struct{}),
+	}
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		case "up", "k":
+			if m.cursor > 0 {
+				m.cursor--
+			}
+		case "down", "j":
+			if m.cursor < len(m.choices)-1 {
+				m.cursor++
+			}
+		case "enter", " ":
+			_, ok := m.selected[m.cursor]
+			if ok {
+				delete(m.selected, m.cursor)
+			} else {
+				m.selected[m.cursor] = struct{}{}
+			}
+		}
+	}
+
+	return m, nil
+}
+
+func (m model) View() string {
+	s := "What should we buy at the market?\n\n"
+
+	for i, choice := range m.choices {
+		cursor := " "
+
+		if m.cursor == i {
+			cursor = ">"
+		}
+
+		checked := " "
+		if _, ok := m.selected[i]; ok {
+			checked = "x"
+		}
+
+		s += fmt.Sprintf("%s %s %s\n", cursor, checked, choice)
+	}
+
+	s += "\nPress q to quit.\n"
+
+	return s
+}
+
+func main() {
+	p := tea.NewProgram(initialModel())
+
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("%v", err)
+		os.Exit(1)
+	}
+}
