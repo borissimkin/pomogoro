@@ -2,82 +2,167 @@ package main
 
 import (
 	"fmt"
-	tea "github.com/charmbracelet/bubbletea"
 	"os"
+	"time"
+
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/timer"
+	tea "github.com/charmbracelet/bubbletea"
 )
 
-type model struct {
-	choices  []string
-	cursor   int
-	selected map[int]struct{}
+const ( // iota is reset to 0
+	workSession      = iota
+	breakSession     = iota
+	longBreakSession = iota
+)
+
+var workSessionSettings = sessionSettings{
+	title: "Pomodoro",
 }
 
-func initialModel() model {
-	return model{
-		choices:  []string{"1", "2", "3"},
-		selected: make(map[int]struct{}),
+var breakSessionSettings = sessionSettings{
+	title: "Short Break",
+}
+
+var longBreakSessionSettings = sessionSettings{
+	title: "Long Break",
+}
+
+type settings struct {
+	workSessionsUntilLongBreak int
+	durations                  map[int]int
+}
+
+//func newSettings() *settings {}
+
+type sessionSettings struct {
+	title string
+	emoji int
+	color string
+}
+
+type pomodoro struct {
+	currentSessionType int
+	settings           *settings
+	completed          map[int]int
+}
+
+func newPomodoro() *pomodoro {
+	return &pomodoro{
+		currentSessionType: workSession,
+		completed:          make(map[int]int),
+		//settings *settings{}
 	}
 }
 
+const timeout = time.Minute * 25
+
+type model struct {
+	timer    timer.Model
+	keymap   keymap
+	help     help.Model
+	quitting bool
+	pomodoro pomodoro
+}
+
+type keymap struct {
+	start key.Binding
+	stop  key.Binding
+	reset key.Binding
+	quit  key.Binding
+}
+
 func (m model) Init() tea.Cmd {
-	return nil
+	return m.timer.Init()
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case timer.TickMsg:
+		var cmd tea.Cmd
+		m.timer, cmd = m.timer.Update(msg)
+		return m, cmd
+
+	case timer.StartStopMsg:
+		var cmd tea.Cmd
+		m.timer, cmd = m.timer.Update(msg)
+		m.keymap.stop.SetEnabled(m.timer.Running())
+		m.keymap.start.SetEnabled(!m.timer.Running())
+		return m, cmd
+
+	case timer.TimeoutMsg:
+		m.quitting = true
+		return m, tea.Quit
+
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
+		switch {
+		case key.Matches(msg, m.keymap.quit):
+			m.quitting = true
 			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
+		case key.Matches(msg, m.keymap.reset):
+			m.timer.Timeout = timeout
+		case key.Matches(msg, m.keymap.start, m.keymap.stop):
+			return m, m.timer.Toggle()
 		}
 	}
 
 	return m, nil
 }
 
+func (m model) helpView() string {
+	return "\n" + m.help.ShortHelpView([]key.Binding{
+		m.keymap.start,
+		m.keymap.stop,
+		m.keymap.reset,
+		m.keymap.quit,
+	})
+}
+
 func (m model) View() string {
-	s := "What should we buy at the market?\n\n"
+	// For a more detailed timer view you could read m.timer.Timeout to get
+	// the remaining time as a time.Duration and skip calling m.timer.View()
+	// entirely.
+	s := m.timer.View()
 
-	for i, choice := range m.choices {
-		cursor := " "
-
-		if m.cursor == i {
-			cursor = ">"
-		}
-
-		checked := " "
-		if _, ok := m.selected[i]; ok {
-			checked = "x"
-		}
-
-		s += fmt.Sprintf("%s %s %s\n", cursor, checked, choice)
+	if m.timer.Timedout() {
+		s = "All done!"
 	}
-
-	s += "\nPress q to quit.\n"
-
+	s += "\n"
+	if !m.quitting {
+		s = "Exiting in " + s
+		s += m.helpView()
+	}
 	return s
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
+	m := model{
+		timer: timer.NewWithInterval(timeout, time.Second),
+		keymap: keymap{
+			start: key.NewBinding(
+				key.WithKeys("s"),
+				key.WithHelp("s", "start"),
+			),
+			stop: key.NewBinding(
+				key.WithKeys("s"),
+				key.WithHelp("s", "stop"),
+			),
+			reset: key.NewBinding(
+				key.WithKeys("r"),
+				key.WithHelp("r", "reset"),
+			),
+			quit: key.NewBinding(
+				key.WithKeys("q", "ctrl+c"),
+				key.WithHelp("q", "quit"),
+			),
+		},
+		help: help.New(),
+	}
+	m.keymap.start.SetEnabled(false)
 
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("%v", err)
+	if _, err := tea.NewProgram(m).Run(); err != nil {
+		fmt.Println("Uh oh, we encountered an error:", err)
 		os.Exit(1)
 	}
 }
