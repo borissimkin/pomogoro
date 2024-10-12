@@ -11,50 +11,82 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-const ( // iota is reset to 0
-	workSession      = iota
-	breakSession     = iota
-	longBreakSession = iota
+type SessionType string
+
+const (
+	workSession      SessionType = "workSession"
+	breakSession     SessionType = "breakSession"
+	longBreakSession SessionType = "longBreakSession"
 )
 
-var workSessionSettings = sessionSettings{
+var workSessionSettings = SessionSettings{
 	title: "Pomodoro",
 }
 
-var breakSessionSettings = sessionSettings{
+var breakSessionSettings = SessionSettings{
 	title: "Short Break",
 }
 
-var longBreakSessionSettings = sessionSettings{
+var longBreakSessionSettings = SessionSettings{
 	title: "Long Break",
 }
 
-type settings struct {
+type durations map[SessionType]time.Duration
+
+type Settings struct {
 	workSessionsUntilLongBreak int
-	durations                  map[int]int
+	durations                  durations
 }
 
-//func newSettings() *settings {}
+func (s *Settings) getDuration(sessionType SessionType) time.Duration {
+	return s.durations[sessionType]
+}
 
-type sessionSettings struct {
+func newSettings() *Settings {
+	return &Settings{
+		workSessionsUntilLongBreak: 4,
+		durations: durations{
+			workSession:      time.Minute * 25,
+			breakSession:     time.Minute * 5,
+			longBreakSession: time.Minute * 15,
+		},
+	}
+}
+
+type SessionSettings struct {
 	title string
 	emoji int
 	color string
 }
 
-type pomodoro struct {
-	currentSessionType int
-	settings           *settings
-	completed          map[int]int
+type Pomodoro struct {
+	currentSessionType SessionType
+	settings           *Settings
+	lastSessionType    SessionType
+	completed          map[SessionType]int
 }
 
-func newPomodoro() *pomodoro {
-	return &pomodoro{
+func newPomodoro(settings *Settings) *Pomodoro {
+	return &Pomodoro{
 		currentSessionType: workSession,
-		completed:          make(map[int]int),
-		//settings *settings{}
+		completed:          make(map[SessionType]int),
+		settings:           settings,
 	}
 }
+
+func (p *Pomodoro) getNextSessionType() SessionType {
+	if p.lastSessionType == "" || p.lastSessionType == longBreakSession || p.lastSessionType == breakSession {
+		return workSession
+	}
+
+	if p.completed[workSession]%p.settings.workSessionsUntilLongBreak != 0 {
+		return workSession
+	}
+
+	return breakSession
+}
+
+//func (p *Pomodoro)  {}
 
 const timeout = time.Minute * 25
 
@@ -63,7 +95,7 @@ type model struct {
 	keymap   keymap
 	help     help.Model
 	quitting bool
-	pomodoro pomodoro
+	pomodoro *Pomodoro
 }
 
 type keymap struct {
@@ -137,8 +169,13 @@ func (m model) View() string {
 }
 
 func main() {
+	settings := newSettings()
+
+	pomodoro := newPomodoro(settings)
+
 	m := model{
-		timer: timer.NewWithInterval(timeout, time.Second),
+		timer:    timer.NewWithInterval(timeout, time.Second),
+		pomodoro: pomodoro,
 		keymap: keymap{
 			start: key.NewBinding(
 				key.WithKeys("s"),
