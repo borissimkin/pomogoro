@@ -53,8 +53,8 @@ func newSettings() *Settings {
 			//workSession:      time.Minute * 25,
 			//breakSession:     time.Minute * 5,
 			//longBreakSession: time.Minute * 15,
-			workSession:      time.Second * 10,
-			breakSession:     time.Second * 2,
+			workSession:      time.Second * 2,
+			breakSession:     time.Second * 1,
 			longBreakSession: time.Second * 7,
 		},
 	}
@@ -79,6 +79,10 @@ func (p *Pomodoro) totalWorkSessions() int {
 	return p.completed[workSession]
 }
 
+func (p *Pomodoro) sessionsBeforeLongBreak() int {
+	return p.settings.workSessionsUntilLongBreak - p.totalWorkSessions()%p.settings.workSessionsUntilLongBreak
+}
+
 func newPomodoro(settings *Settings) *Pomodoro {
 	return &Pomodoro{
 		currentSessionType: workSession,
@@ -101,7 +105,7 @@ func (p *Pomodoro) getNextSessionType() SessionType {
 		return workSession
 	}
 
-	if p.completed[workSession]%p.settings.workSessionsUntilLongBreak == 0 {
+	if p.sessionsBeforeLongBreak() == 0 {
 		return longBreakSession
 	}
 
@@ -181,6 +185,10 @@ func renderTotalSessions(p *Pomodoro) string {
 	return fmt.Sprintf("Total Work sessions: %v", p.totalWorkSessions())
 }
 
+func renderSessionsBeforeLongBreak(p *Pomodoro) string {
+	return fmt.Sprintf("Sessions left before the long break: %v", p.sessionsBeforeLongBreak())
+}
+
 func renderSessionTypes(p *Pomodoro) string {
 	s := ""
 
@@ -222,6 +230,8 @@ func (m model) View() string {
 	s += renderBreakLine()
 
 	s += renderTotalSessions(m.pomodoro)
+	s += renderBreakLine()
+	s += renderSessionsBeforeLongBreak(m.pomodoro)
 
 	s += renderBreakLine()
 
