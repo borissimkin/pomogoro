@@ -75,6 +75,10 @@ type Pomodoro struct {
 	completed           map[SessionType]int
 }
 
+func (p *Pomodoro) totalWorkSessions() int {
+	return p.completed[workSession]
+}
+
 func newPomodoro(settings *Settings) *Pomodoro {
 	return &Pomodoro{
 		currentSessionType: workSession,
@@ -173,12 +177,16 @@ func (m model) helpView() string {
 	})
 }
 
-func renderSessionTypes(m model) string {
+func renderTotalSessions(p *Pomodoro) string {
+	return fmt.Sprintf("Total Work sessions: %v", p.totalWorkSessions())
+}
+
+func renderSessionTypes(p *Pomodoro) string {
 	s := ""
 
-	settings := make([]*SessionSettings, 0, len(m.pomodoro.sessionSettings))
+	settings := make([]*SessionSettings, 0, len(p.sessionSettings))
 
-	for _, value := range m.pomodoro.sessionSettings {
+	for _, value := range p.sessionSettings {
 		settings = append(settings, value)
 	}
 
@@ -189,7 +197,7 @@ func renderSessionTypes(m model) string {
 	for _, item := range settings {
 		cursor := " "
 
-		if item.sessionType == m.pomodoro.currentSessionType {
+		if item.sessionType == p.currentSessionType {
 			cursor = "*"
 		}
 
@@ -204,14 +212,16 @@ func renderBreakLine() string {
 }
 
 func (m model) View() string {
-	// For a more detailed timer view you could read m.timer.Timeout to get
-	// the remaining time as a time.Duration and skip calling m.timer.View()
-	// entirely.
-	s := renderSessionTypes(m)
+	s := renderSessionTypes(m.pomodoro)
 
 	s += renderBreakLine()
 
 	s += m.timer.View()
+
+	s += renderBreakLine()
+	s += renderBreakLine()
+
+	s += renderTotalSessions(m.pomodoro)
 
 	s += renderBreakLine()
 
