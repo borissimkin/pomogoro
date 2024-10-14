@@ -12,10 +12,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-/**
-
- */
-
 type SessionType int
 
 const (
