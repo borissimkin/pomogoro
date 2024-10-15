@@ -23,16 +23,28 @@ const (
 var workSessionSettings = SessionSettings{
 	sessionType: workSession,
 	title:       "Pomodoro",
+	notification: &SessionNotifySettings{
+		title:   "Focus",
+		message: "It`s time to start focusing...",
+	},
 }
 
 var breakSessionSettings = SessionSettings{
 	sessionType: breakSession,
 	title:       "Short Break",
+	notification: &SessionNotifySettings{
+		title:   "Relax",
+		message: "Lets take a little break...",
+	},
 }
 
 var longBreakSessionSettings = SessionSettings{
 	sessionType: longBreakSession,
 	title:       "Long Break",
+	notification: &SessionNotifySettings{
+		title:   "Long Relax",
+		message: "Lets take a long break...",
+	},
 }
 
 type durations map[SessionType]time.Duration
@@ -53,18 +65,24 @@ func newSettings() *Settings {
 			//workSession:      time.Minute * 25,
 			//breakSession:     time.Minute * 5,
 			//longBreakSession: time.Minute * 15,
-			workSession:      time.Second * 2,
-			breakSession:     time.Second * 1,
+			workSession:      time.Second * 4,
+			breakSession:     time.Second * 3,
 			longBreakSession: time.Second * 7,
 		},
 	}
 }
 
+type SessionNotifySettings struct {
+	title   string
+	message string
+}
+
 type SessionSettings struct {
-	sessionType SessionType
-	title       string
-	emoji       int
-	color       string
+	sessionType  SessionType
+	title        string
+	emoji        int
+	color        string
+	notification *SessionNotifySettings
 }
 
 type Pomodoro struct {
@@ -105,18 +123,21 @@ func (p *Pomodoro) getNextSessionType() SessionType {
 		return workSession
 	}
 
-	if p.sessionsBeforeLongBreak() == 0 {
+	if p.completed[workSession]%p.settings.workSessionsUntilLongBreak == 0 {
 		return longBreakSession
 	}
 
 	return breakSession
 }
 
-func (p *Pomodoro) nextSession() {
+func (p *Pomodoro) nextSession() SessionType {
 	p.completed[p.currentSessionType]++
 	p.previousSessionType = p.currentSessionType
 
-	p.currentSessionType = p.getNextSessionType()
+	nextSession := p.getNextSessionType()
+	p.currentSessionType = nextSession
+
+	return nextSession
 }
 
 type model struct {
@@ -154,7 +175,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case timer.TimeoutMsg:
-		m.pomodoro.nextSession()
+		nextSession := m.pomodoro.nextSession()
+		notification := m.pomodoro.sessionSettings[nextSession].notification
+		notify(notification.title, notification.message)
 		m.timer.Timeout = m.pomodoro.getDuration()
 		return m, nil
 
