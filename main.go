@@ -132,6 +132,7 @@ type keymap struct {
 	stop  key.Binding
 	reset key.Binding
 	quit  key.Binding
+	next  key.Binding
 }
 
 func (m model) Init() tea.Cmd {
@@ -166,6 +167,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.timer.Timeout = m.pomodoro.getDuration()
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.timer.Toggle()
+		case key.Matches(msg, m.keymap.next):
+			m.pomodoro.nextSession()
+			m.timer.Timeout = m.pomodoro.getDuration()
+			return m, nil
 		}
 	}
 
@@ -178,6 +183,7 @@ func (m model) helpView() string {
 		m.keymap.stop,
 		m.keymap.reset,
 		m.keymap.quit,
+		m.keymap.next,
 	})
 }
 
@@ -264,6 +270,10 @@ func main() {
 			quit: key.NewBinding(
 				key.WithKeys("q", "ctrl+c"),
 				key.WithHelp("q", "quit"),
+			),
+			next: key.NewBinding(
+				key.WithKeys("n"),
+				key.WithHelp("n", "next"),
 			),
 		},
 		help: help.New(),
