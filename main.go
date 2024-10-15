@@ -24,8 +24,8 @@ var workSessionSettings = SessionSettings{
 	sessionType: workSession,
 	title:       "Pomodoro",
 	notification: &SessionNotifySettings{
-		title:   "Focus",
-		message: "It`s time to start focusing...",
+		title:   "Work",
+		message: "It’s time to focus and make some progress!",
 	},
 }
 
@@ -33,8 +33,8 @@ var breakSessionSettings = SessionSettings{
 	sessionType: breakSession,
 	title:       "Short Break",
 	notification: &SessionNotifySettings{
-		title:   "Relax",
-		message: "Lets take a little break...",
+		title:   "Break",
+		message: "Take a short break to recharge and reset.",
 	},
 }
 
@@ -42,8 +42,8 @@ var longBreakSessionSettings = SessionSettings{
 	sessionType: longBreakSession,
 	title:       "Long Break",
 	notification: &SessionNotifySettings{
-		title:   "Long Relax",
-		message: "Lets take a long break...",
+		title:   "Rest",
+		message: "Enjoy a longer break to fully unwind and refresh.",
 	},
 }
 
