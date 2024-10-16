@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/charmbracelet/lipgloss"
 	"os"
 	"sort"
 	"time"
@@ -21,8 +22,9 @@ const (
 )
 
 var workSessionSettings = SessionSettings{
-	sessionType: workSession,
-	title:       "Pomodoro",
+	sessionType:     workSession,
+	title:           "Pomodoro",
+	backgroundColor: "#ba4949",
 	notification: &SessionNotifySettings{
 		title:   "Work",
 		message: "It’s time to focus and make some progress!",
@@ -30,8 +32,10 @@ var workSessionSettings = SessionSettings{
 }
 
 var breakSessionSettings = SessionSettings{
-	sessionType: breakSession,
-	title:       "Short Break",
+	sessionType:     breakSession,
+	title:           "Short Break",
+	backgroundColor: "#38858a",
+
 	notification: &SessionNotifySettings{
 		title:   "Break",
 		message: "Take a short break to recharge and reset.",
@@ -39,8 +43,9 @@ var breakSessionSettings = SessionSettings{
 }
 
 var longBreakSessionSettings = SessionSettings{
-	sessionType: longBreakSession,
-	title:       "Long Break",
+	sessionType:     longBreakSession,
+	title:           "Long Break",
+	backgroundColor: "#397097",
 	notification: &SessionNotifySettings{
 		title:   "Rest",
 		message: "Enjoy a longer break to fully unwind and refresh.",
@@ -78,11 +83,11 @@ type SessionNotifySettings struct {
 }
 
 type SessionSettings struct {
-	sessionType  SessionType
-	title        string
-	emoji        int
-	color        string
-	notification *SessionNotifySettings
+	sessionType     SessionType
+	title           string
+	emoji           int
+	backgroundColor string
+	notification    *SessionNotifySettings
 }
 
 type Pomodoro struct {
@@ -234,11 +239,21 @@ func renderSessionTypes(p *Pomodoro) string {
 	for _, item := range settings {
 		cursor := " "
 
-		if item.sessionType == p.currentSessionType {
+		var style = lipgloss.NewStyle().
+			AlignHorizontal(lipgloss.Center).
+			MarginRight(1).
+			Foreground(lipgloss.Color("#FFFDF5")).
+			Background(lipgloss.Color(item.backgroundColor)).
+			Padding(0, 1)
+
+		if item.sessionType != p.currentSessionType {
+			style = style.
+				Faint(true)
+		} else {
 			cursor = "*"
 		}
 
-		s += fmt.Sprintf("%s %s\n", cursor, item.title)
+		s += style.Render(fmt.Sprintf("%s %s", cursor, item.title))
 	}
 
 	return s
@@ -248,12 +263,18 @@ func renderBreakLine() string {
 	return "\n"
 }
 
+func renderTime(m model) string {
+	var style = lipgloss.NewStyle()
+
+	return style.Render(m.timer.View())
+}
+
 func (m model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
 	s += renderBreakLine()
 
-	s += m.timer.View()
+	s += renderTime(m)
 
 	s += renderBreakLine()
 	s += renderBreakLine()
@@ -275,7 +296,7 @@ func main() {
 	pomodoro := newPomodoro(settings)
 
 	m := model{
-		timer:    timer.NewWithInterval(pomodoro.getDuration(), time.Second),
+		timer:    timer.New(pomodoro.getDuration()),
 		pomodoro: pomodoro,
 		keymap: keymap{
 			start: key.NewBinding(
