@@ -264,7 +264,7 @@ func renderBreakLine() string {
 }
 
 func renderTime(m model) string {
-	var style = lipgloss.NewStyle()
+	var style = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Bold(true)
 
 	return style.Render(m.timer.View())
 }
@@ -272,6 +272,7 @@ func renderTime(m model) string {
 func (m model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
+	s += renderBreakLine()
 	s += renderBreakLine()
 
 	s += renderTime(m)
