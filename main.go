@@ -2,163 +2,22 @@ package main
 
 import (
 	"fmt"
-	"github.com/charmbracelet/lipgloss"
-	"os"
-	"sort"
-	"time"
-
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"os"
+	"pomogoro/packages/keybinding"
+	"sort"
 )
-
-type SessionType int
-
-const (
-	workSession      SessionType = 1
-	breakSession     SessionType = 2
-	longBreakSession SessionType = 3
-)
-
-var workSessionSettings = SessionSettings{
-	sessionType:     workSession,
-	title:           "Pomodoro",
-	backgroundColor: "#ba4949",
-	notification: &SessionNotifySettings{
-		title:   "Work",
-		message: "It’s time to focus and make some progress!",
-	},
-}
-
-var breakSessionSettings = SessionSettings{
-	sessionType:     breakSession,
-	title:           "Short Break",
-	backgroundColor: "#38858a",
-
-	notification: &SessionNotifySettings{
-		title:   "Break",
-		message: "Take a short break to recharge and reset.",
-	},
-}
-
-var longBreakSessionSettings = SessionSettings{
-	sessionType:     longBreakSession,
-	title:           "Long Break",
-	backgroundColor: "#397097",
-	notification: &SessionNotifySettings{
-		title:   "Rest",
-		message: "Enjoy a longer break to fully unwind and refresh.",
-	},
-}
-
-type durations map[SessionType]time.Duration
-
-type Settings struct {
-	workSessionsUntilLongBreak int
-	durations                  durations
-}
-
-func (s *Settings) getDuration(sessionType SessionType) time.Duration {
-	return s.durations[sessionType]
-}
-
-func newSettings() *Settings {
-	return &Settings{
-		workSessionsUntilLongBreak: 4,
-		durations: durations{
-			//workSession:      time.Minute * 25,
-			//breakSession:     time.Minute * 5,
-			//longBreakSession: time.Minute * 15,
-			workSession:      time.Second * 4,
-			breakSession:     time.Second * 3,
-			longBreakSession: time.Second * 7,
-		},
-	}
-}
-
-type SessionNotifySettings struct {
-	title   string
-	message string
-}
-
-type SessionSettings struct {
-	sessionType     SessionType
-	title           string
-	emoji           int
-	backgroundColor string
-	notification    *SessionNotifySettings
-}
-
-type Pomodoro struct {
-	currentSessionType  SessionType
-	settings            *Settings
-	sessionSettings     map[SessionType]*SessionSettings
-	previousSessionType SessionType
-	completed           map[SessionType]int
-}
-
-func (p *Pomodoro) totalWorkSessions() int {
-	return p.completed[workSession]
-}
-
-func (p *Pomodoro) sessionsBeforeLongBreak() int {
-	return p.settings.workSessionsUntilLongBreak - p.totalWorkSessions()%p.settings.workSessionsUntilLongBreak
-}
-
-func newPomodoro(settings *Settings) *Pomodoro {
-	return &Pomodoro{
-		currentSessionType: workSession,
-		completed:          make(map[SessionType]int),
-		settings:           settings,
-		sessionSettings: map[SessionType]*SessionSettings{
-			workSession:      &workSessionSettings,
-			breakSession:     &breakSessionSettings,
-			longBreakSession: &longBreakSessionSettings,
-		},
-	}
-}
-
-func (p *Pomodoro) getDuration() time.Duration {
-	return p.settings.getDuration(p.currentSessionType)
-}
-
-func (p *Pomodoro) getNextSessionType() SessionType {
-	if p.previousSessionType != workSession {
-		return workSession
-	}
-
-	if p.completed[workSession]%p.settings.workSessionsUntilLongBreak == 0 {
-		return longBreakSession
-	}
-
-	return breakSession
-}
-
-func (p *Pomodoro) nextSession() SessionType {
-	p.completed[p.currentSessionType]++
-	p.previousSessionType = p.currentSessionType
-
-	nextSession := p.getNextSessionType()
-	p.currentSessionType = nextSession
-
-	return nextSession
-}
 
 type model struct {
 	timer    timer.Model
-	keymap   keymap
+	keymap   keybinding.KeyMap
 	help     help.Model
 	quitting bool
 	pomodoro *Pomodoro
-}
-
-type keymap struct {
-	start key.Binding
-	stop  key.Binding
-	reset key.Binding
-	quit  key.Binding
-	next  key.Binding
 }
 
 func (m model) Init() tea.Cmd {
@@ -167,6 +26,9 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.help.Width = msg.Width
+
 	case timer.TickMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
@@ -175,8 +37,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case timer.StartStopMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
-		m.keymap.stop.SetEnabled(m.timer.Running())
-		m.keymap.start.SetEnabled(!m.timer.Running())
+		m.keymap.Stop.SetEnabled(m.timer.Running())
+		m.keymap.Start.SetEnabled(!m.timer.Running())
 		return m, cmd
 
 	case timer.TimeoutMsg:
@@ -188,31 +50,39 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, m.keymap.quit):
+		case key.Matches(msg, m.keymap.Help):
+			m.help.ShowAll = !m.help.ShowAll
+		case key.Matches(msg, m.keymap.Quit):
 			m.quitting = true
 			return m, tea.Quit
-		case key.Matches(msg, m.keymap.reset):
+		case key.Matches(msg, m.keymap.Reset):
 			m.timer.Timeout = m.pomodoro.getDuration()
-		case key.Matches(msg, m.keymap.start, m.keymap.stop):
+		case key.Matches(msg, m.keymap.Start, m.keymap.Stop):
 			return m, m.timer.Toggle()
-		case key.Matches(msg, m.keymap.next):
+		case key.Matches(msg, m.keymap.Next):
 			m.pomodoro.nextSession()
 			m.timer.Timeout = m.pomodoro.getDuration()
-			return m, nil
+		case key.Matches(msg, m.keymap.Right):
+			// todo: refactor
+			nextSession := m.pomodoro.currentSessionType + 1
+			if nextSession > longBreakSession {
+				nextSession = workSession
+			}
+
+			m.pomodoro.setSession(nextSession)
+			m.timer.Timeout = m.pomodoro.getDuration()
+		case key.Matches(msg, m.keymap.Left):
+			nextSession := m.pomodoro.currentSessionType - 1
+			if nextSession < workSession {
+				nextSession = longBreakSession
+			}
+
+			m.pomodoro.setSession(nextSession)
+			m.timer.Timeout = m.pomodoro.getDuration()
 		}
 	}
 
 	return m, nil
-}
-
-func (m model) helpView() string {
-	return "\n" + m.help.ShortHelpView([]key.Binding{
-		m.keymap.start,
-		m.keymap.stop,
-		m.keymap.reset,
-		m.keymap.quit,
-		m.keymap.next,
-	})
 }
 
 func renderTotalSessions(p *Pomodoro) string {
@@ -286,7 +156,7 @@ func (m model) View() string {
 
 	s += renderBreakLine()
 
-	s += m.helpView()
+	s += m.help.View(m.keymap)
 
 	return s
 }
@@ -299,31 +169,10 @@ func main() {
 	m := model{
 		timer:    timer.New(pomodoro.getDuration()),
 		pomodoro: pomodoro,
-		keymap: keymap{
-			start: key.NewBinding(
-				key.WithKeys("s"),
-				key.WithHelp("s", "start"),
-			),
-			stop: key.NewBinding(
-				key.WithKeys("s"),
-				key.WithHelp("s", "stop"),
-			),
-			reset: key.NewBinding(
-				key.WithKeys("r"),
-				key.WithHelp("r", "reset"),
-			),
-			quit: key.NewBinding(
-				key.WithKeys("q", "ctrl+c"),
-				key.WithHelp("q", "quit"),
-			),
-			next: key.NewBinding(
-				key.WithKeys("n"),
-				key.WithHelp("n", "next"),
-			),
-		},
-		help: help.New(),
+		keymap:   keybinding.InitKeys(),
+		help:     help.New(),
 	}
-	m.keymap.start.SetEnabled(false)
+	m.keymap.Start.SetEnabled(false)
 
 	if _, err := tea.NewProgram(m).Run(); err != nil {
 		fmt.Println("Uh oh, we encountered an error:", err)
