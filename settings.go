@@ -1,6 +1,9 @@
 package main
 
-import "time"
+import (
+	"sort"
+	"time"
+)
 
 type SessionType int
 
@@ -9,6 +12,33 @@ const (
 	breakSession     SessionType = 2
 	longBreakSession SessionType = 3
 )
+
+func getSessionType(sessionType SessionType) SessionType {
+	sessionTypes := sliceSessionTypes()
+
+	minSessionType := sessionTypes[0]
+	maxSessionType := sessionTypes[len(sessionTypes)-1]
+
+	if sessionType < minSessionType {
+		return minSessionType
+	}
+
+	if sessionType > maxSessionType {
+		return maxSessionType
+	}
+
+	return sessionType
+}
+
+func sliceSessionTypes() []SessionType {
+	sessionTypes := []SessionType{workSession, breakSession, longBreakSession}
+
+	sort.Slice(sessionTypes, func(i, j int) bool {
+		return i < j
+	})
+
+	return sessionTypes
+}
 
 var workSessionSettings = SessionSettings{
 	sessionType:     workSession,

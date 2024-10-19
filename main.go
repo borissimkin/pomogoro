@@ -63,21 +63,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.pomodoro.nextSession()
 			m.timer.Timeout = m.pomodoro.getDuration()
 		case key.Matches(msg, m.keymap.Right):
-			// todo: refactor
-			nextSession := m.pomodoro.currentSessionType + 1
-			if nextSession > longBreakSession {
-				nextSession = workSession
-			}
-
-			m.pomodoro.setSession(nextSession)
+			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType + 1))
 			m.timer.Timeout = m.pomodoro.getDuration()
 		case key.Matches(msg, m.keymap.Left):
-			nextSession := m.pomodoro.currentSessionType - 1
-			if nextSession < workSession {
-				nextSession = longBreakSession
-			}
-
-			m.pomodoro.setSession(nextSession)
+			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType - 1))
 			m.timer.Timeout = m.pomodoro.getDuration()
 		}
 	}
