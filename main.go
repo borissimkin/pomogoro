@@ -10,6 +10,7 @@ import (
 	"os"
 	"pomogoro/packages/keybinding"
 	"sort"
+	"time"
 )
 
 type model struct {
@@ -156,7 +157,7 @@ func main() {
 	pomodoro := newPomodoro(settings)
 
 	m := model{
-		timer:    timer.New(pomodoro.getDuration()),
+		timer:    timer.NewWithInterval(pomodoro.getDuration(), time.Second),
 		pomodoro: pomodoro,
 		keymap:   keybinding.InitKeys(),
 		help:     help.New(),

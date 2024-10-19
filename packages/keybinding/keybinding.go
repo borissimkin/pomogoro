@@ -35,11 +35,11 @@ func InitKeys() KeyMap {
 	return KeyMap{
 		// todo: spacebar instead s
 		Start: key.NewBinding(
-			key.WithKeys("s"),
+			key.WithKeys(" "),
 			key.WithHelp("s", "start"),
 		),
 		Stop: key.NewBinding(
-			key.WithKeys("s"),
+			key.WithKeys(" "),
 			key.WithHelp("s", "stop"),
 		),
 		Reset: key.NewBinding(

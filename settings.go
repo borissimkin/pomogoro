@@ -20,11 +20,11 @@ func getSessionType(sessionType SessionType) SessionType {
 	maxSessionType := sessionTypes[len(sessionTypes)-1]
 
 	if sessionType < minSessionType {
-		return minSessionType
+		return maxSessionType
 	}
 
 	if sessionType > maxSessionType {
-		return maxSessionType
+		return minSessionType
 	}
 
 	return sessionType
