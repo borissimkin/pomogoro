@@ -10,6 +10,7 @@ import (
 	"os"
 	"pomogoro/packages/keybinding"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -23,6 +24,22 @@ type model struct {
 
 func (m model) Init() tea.Cmd {
 	return m.timer.Init()
+}
+
+func getIncreasedTime(timeout time.Duration, minutes time.Duration) time.Duration {
+	return timeout + minutes*time.Minute
+}
+
+func getDecreasedTime(timeout time.Duration, minutes time.Duration) time.Duration {
+	return timeout - minutes*time.Minute
+}
+
+func increaseTime(m *model, minutes time.Duration) {
+	m.timer.Timeout += time.Minute * minutes
+}
+
+func decreaseTime(m *model, minutes time.Duration) {
+	m.timer.Timeout -= time.Minute * minutes
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -69,6 +86,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.Left):
 			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType - 1))
 			m.timer.Timeout = m.pomodoro.getDuration()
+		case key.Matches(msg, m.keymap.Up):
+			newTimeout := getIncreasedTime(m.timer.Timeout, keybinding.DefaultStepMinutes)
+			m.timer.Timeout = newTimeout
+		case key.Matches(msg, m.keymap.Down):
+			newTimeout := getDecreasedTime(m.timer.Timeout, keybinding.DefaultStepMinutes)
+			if newTimeout < 0 {
+				m.pomodoro.nextSession()
+				m.timer.Timeout = m.pomodoro.getDuration()
+			} else {
+				m.timer.Timeout = newTimeout
+			}
 		}
 	}
 
@@ -123,10 +151,15 @@ func renderBreakLine() string {
 	return "\n"
 }
 
+func removeMilliseconds(time string) string {
+	return strings.Split(time, ".")[0] + "s"
+}
+
 func renderTime(m model) string {
 	var style = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Bold(true)
 
-	return style.Render(m.timer.View())
+	// remove milliseconds cause interval with time.Second has bug
+	return style.Render(removeMilliseconds(m.timer.View()))
 }
 
 func (m model) View() string {
@@ -157,7 +190,7 @@ func main() {
 	pomodoro := newPomodoro(settings)
 
 	m := model{
-		timer:    timer.NewWithInterval(pomodoro.getDuration(), time.Second),
+		timer:    timer.NewWithInterval(pomodoro.getDuration(), time.Millisecond),
 		pomodoro: pomodoro,
 		keymap:   keybinding.InitKeys(),
 		help:     help.New(),
