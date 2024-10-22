@@ -34,14 +34,6 @@ func getDecreasedTime(timeout time.Duration, minutes time.Duration) time.Duratio
 	return timeout - minutes*time.Minute
 }
 
-func increaseTime(m *model, minutes time.Duration) {
-	m.timer.Timeout += time.Minute * minutes
-}
-
-func decreaseTime(m *model, minutes time.Duration) {
-	m.timer.Timeout -= time.Minute * minutes
-}
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
@@ -152,7 +144,23 @@ func renderBreakLine() string {
 }
 
 func removeMilliseconds(time string) string {
-	return strings.Split(time, ".")[0] + "s"
+	zero := "0s"
+
+	if time == zero {
+		return time
+	}
+
+	pointer := "."
+
+	part := strings.Split(time, pointer)[0]
+
+	hasMs := strings.Contains(part, "ms")
+
+	if !strings.Contains(time, pointer) && hasMs {
+		return zero
+	}
+
+	return part + "s"
 }
 
 func renderTime(m model) string {
