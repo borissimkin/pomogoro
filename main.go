@@ -9,17 +9,19 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"os"
 	"pomogoro/packages/keybinding"
+	"pomogoro/packages/sound"
 	"sort"
 	"strings"
 	"time"
 )
 
 type model struct {
-	timer    timer.Model
-	keymap   keybinding.KeyMap
-	help     help.Model
-	quitting bool
-	pomodoro *Pomodoro
+	timer       timer.Model
+	soundPlayer *sound.Player
+	keymap      keybinding.KeyMap
+	help        help.Model
+	quitting    bool
+	pomodoro    *Pomodoro
 }
 
 func (m model) Init() tea.Cmd {
@@ -55,6 +57,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		nextSession := m.pomodoro.nextSession()
 		notification := m.pomodoro.sessionSettings[nextSession].notification
 		notify(notification.title, notification.message)
+		m.soundPlayer.Play()
 		m.timer.Timeout = m.pomodoro.getDuration()
 		return m, nil
 
@@ -194,14 +197,17 @@ func (m model) View() string {
 
 func main() {
 	settings := newSettings()
+	soundPlayer := sound.NewSoundPlayer()
 
+	soundPlayer.InitSoundContext()
 	pomodoro := newPomodoro(settings)
 
 	m := model{
-		timer:    timer.NewWithInterval(pomodoro.getDuration(), time.Millisecond),
-		pomodoro: pomodoro,
-		keymap:   keybinding.InitKeys(),
-		help:     help.New(),
+		timer:       timer.NewWithInterval(pomodoro.getDuration(), time.Millisecond),
+		pomodoro:    pomodoro,
+		soundPlayer: soundPlayer,
+		keymap:      keybinding.InitKeys(),
+		help:        help.New(),
 	}
 	m.keymap.Start.SetEnabled(false)
 
