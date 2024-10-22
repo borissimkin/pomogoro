@@ -169,6 +169,10 @@ func removeMilliseconds(time string) string {
 func renderTime(m model) string {
 	var style = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Bold(true)
 
+	if !m.timer.Running() {
+		style = style.Faint(true)
+	}
+
 	// remove milliseconds cause interval with time.Second has bug
 	return style.Render(removeMilliseconds(m.timer.View()))
 }

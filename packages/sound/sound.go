@@ -2,12 +2,11 @@ package sound
 
 import (
 	"bytes"
+	"github.com/ebitengine/oto/v3"
+	"github.com/hajimehoshi/go-mp3"
 	"io"
 	"os"
 	"time"
-
-	"github.com/ebitengine/oto/v3"
-	"github.com/hajimehoshi/go-mp3"
 )
 
 type Player struct {
