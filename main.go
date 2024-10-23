@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -16,6 +17,7 @@ import (
 )
 
 type model struct {
+	progress    progress.Model
 	timer       timer.Model
 	soundPlayer *sound.Player
 	keymap      keybinding.KeyMap
@@ -36,14 +38,25 @@ func getDecreasedTime(timeout time.Duration, minutes time.Duration) time.Duratio
 	return timeout - minutes*time.Minute
 }
 
+const (
+	progressBarMaxWidth = 43
+)
+
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.help.Width = msg.Width
 
+		m.progress.Width = msg.Width
+		if m.progress.Width > progressBarMaxWidth {
+			m.progress.Width = progressBarMaxWidth
+		}
+		return m, nil
+
 	case timer.TickMsg:
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
+
 		return m, cmd
 
 	case timer.StartStopMsg:
@@ -177,6 +190,26 @@ func renderTime(m model) string {
 	return style.Render(removeMilliseconds(m.timer.View()))
 }
 
+func getPercent(m *model) float64 {
+	return float64(m.pomodoro.getDuration()-m.timer.Timeout) / float64(m.pomodoro.getDuration())
+}
+
+func isPause(m *model) bool {
+	return m.keymap.Start.Enabled()
+}
+
+func renderProgressBar(m *model) string {
+	color := m.pomodoro.currentSessionSettings().backgroundColor
+
+	if isPause(m) {
+		color = "#4b4453" // todo
+	}
+
+	m.progress.FullColor = color
+
+	return m.progress.ViewAs(getPercent(m))
+}
+
 func (m model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
@@ -184,6 +217,10 @@ func (m model) View() string {
 	s += renderBreakLine()
 
 	s += renderTime(m)
+
+	s += renderBreakLine()
+
+	s += renderProgressBar(&m)
 
 	s += renderBreakLine()
 	s += renderBreakLine()
@@ -207,6 +244,7 @@ func main() {
 	pomodoro := newPomodoro(settings)
 
 	m := model{
+		progress:    progress.New(progress.WithSolidFill(pomodoro.currentSessionSettings().backgroundColor), progress.WithoutPercentage()),
 		timer:       timer.NewWithInterval(pomodoro.getDuration(), time.Millisecond),
 		pomodoro:    pomodoro,
 		soundPlayer: soundPlayer,

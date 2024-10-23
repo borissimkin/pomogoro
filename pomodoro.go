@@ -14,6 +14,10 @@ func (p *Pomodoro) totalWorkSessions() int {
 	return p.completed[workSession]
 }
 
+func (p *Pomodoro) currentSessionSettings() *SessionSettings {
+	return p.sessionSettings[p.currentSessionType]
+}
+
 func (p *Pomodoro) sessionsBeforeLongBreak() int {
 	return p.settings.workSessionsUntilLongBreak - p.totalWorkSessions()%p.settings.workSessionsUntilLongBreak
 }
