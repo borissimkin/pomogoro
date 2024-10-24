@@ -19,10 +19,10 @@ import (
 type model struct {
 	progress    progress.Model
 	timer       timer.Model
+	initTime    time.Duration
 	soundPlayer *sound.Player
 	keymap      keybinding.KeyMap
 	help        help.Model
-	quitting    bool
 	pomodoro    *Pomodoro
 }
 
@@ -36,6 +36,11 @@ func getIncreasedTime(timeout time.Duration, minutes time.Duration) time.Duratio
 
 func getDecreasedTime(timeout time.Duration, minutes time.Duration) time.Duration {
 	return timeout - minutes*time.Minute
+}
+
+func setTime(m *model, duration time.Duration) {
+	m.timer.Timeout = duration
+	m.initTime = duration
 }
 
 const (
@@ -79,29 +84,30 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.Quit):
-			m.quitting = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.Reset):
-			m.timer.Timeout = m.pomodoro.getDuration()
+			setTime(&m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Start, m.keymap.Stop):
 			return m, m.timer.Toggle()
 		case key.Matches(msg, m.keymap.Next):
 			m.pomodoro.nextSession()
-			m.timer.Timeout = m.pomodoro.getDuration()
+			setTime(&m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Right):
 			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType + 1))
-			m.timer.Timeout = m.pomodoro.getDuration()
+			setTime(&m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Left):
 			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType - 1))
-			m.timer.Timeout = m.pomodoro.getDuration()
+			setTime(&m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Up):
 			newTimeout := getIncreasedTime(m.timer.Timeout, keybinding.DefaultStepMinutes)
+			m.initTime += keybinding.DefaultStepMinutes * time.Minute
 			m.timer.Timeout = newTimeout
 		case key.Matches(msg, m.keymap.Down):
 			newTimeout := getDecreasedTime(m.timer.Timeout, keybinding.DefaultStepMinutes)
+			m.initTime -= keybinding.DefaultStepMinutes * time.Minute
 			if newTimeout < 0 {
 				m.pomodoro.nextSession()
-				m.timer.Timeout = m.pomodoro.getDuration()
+				setTime(&m, m.pomodoro.getDuration())
 			} else {
 				m.timer.Timeout = newTimeout
 			}
@@ -155,6 +161,7 @@ func renderSessionTypes(p *Pomodoro) string {
 	return s
 }
 
+// todo: pass count
 func renderBreakLine() string {
 	return "\n"
 }
@@ -191,7 +198,7 @@ func renderTime(m model) string {
 }
 
 func getPercent(m *model) float64 {
-	return float64(m.pomodoro.getDuration()-m.timer.Timeout) / float64(m.pomodoro.getDuration())
+	return float64(m.initTime-m.timer.Timeout) / float64(m.initTime)
 }
 
 func isPause(m *model) bool {
@@ -243,9 +250,12 @@ func main() {
 	soundPlayer.InitSoundContext()
 	pomodoro := newPomodoro(settings)
 
+	initTime := pomodoro.getDuration()
+
 	m := model{
 		progress:    progress.New(progress.WithSolidFill(pomodoro.currentSessionSettings().backgroundColor), progress.WithoutPercentage()),
-		timer:       timer.NewWithInterval(pomodoro.getDuration(), time.Millisecond),
+		timer:       timer.NewWithInterval(initTime, time.Millisecond),
+		initTime:    initTime,
 		pomodoro:    pomodoro,
 		soundPlayer: soundPlayer,
 		keymap:      keybinding.InitKeys(),
