@@ -76,7 +76,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		notification := m.pomodoro.sessionSettings[nextSession].notification
 		notify(notification.title, notification.message)
 		m.soundPlayer.Play()
-		m.timer.Timeout = m.pomodoro.getDuration()
+		setTime(&m, m.pomodoro.getDuration())
 		return m, nil
 
 	case tea.KeyMsg:
