@@ -86,12 +86,12 @@ func newSettings() *Settings {
 	return &Settings{
 		workSessionsUntilLongBreak: 4,
 		durations: durations{
-			//workSession:      time.Minute * 25,
-			//breakSession:     time.Minute * 5,
-			//longBreakSession: time.Minute * 15,
-			workSession:      time.Second * 4,
-			breakSession:     time.Second * 3,
-			longBreakSession: time.Second * 7,
+			workSession:      time.Minute * 25,
+			breakSession:     time.Minute * 5,
+			longBreakSession: time.Minute * 15,
+			//workSession:      time.Second * 4,
+			//breakSession:     time.Second * 3,
+			//longBreakSession: time.Second * 7,
 		},
 	}
 }

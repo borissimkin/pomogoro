@@ -30,7 +30,7 @@ func (k KeyMap) ShortHelp() []key.Binding {
 		k.Right,
 		k.Up,
 		k.Down,
-		//k.Help, // todo: remove?
+		k.Help,
 		k.Quit,
 	}
 }
@@ -39,7 +39,8 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	// todo
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right}, // first column
-		{k.Help, k.Quit},                // second column
+		{k.Start, k.Stop, k.Reset, k.Next},
+		{k.Help, k.Quit}, // second column
 	}
 }
 
@@ -64,6 +65,10 @@ func InitKeys() KeyMap {
 		Next: key.NewBinding(
 			key.WithKeys("n", "т"),
 			key.WithHelp("n", "next"),
+		),
+		Help: key.NewBinding(
+			key.WithKeys("/", "?"),
+			key.WithHelp("?", "help"),
 		),
 
 		Up: key.NewBinding(
