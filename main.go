@@ -179,11 +179,15 @@ func removeMilliseconds(time string) string {
 
 	hasMs := strings.Contains(part, "ms")
 
-	if !strings.Contains(time, pointer) && hasMs {
+	if strings.Contains(time, pointer) {
+		return part + "s"
+	}
+
+	if hasMs {
 		return zero
 	}
 
-	return part + "s"
+	return time
 }
 
 func renderTime(m model) string {
