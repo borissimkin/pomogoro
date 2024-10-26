@@ -62,25 +62,25 @@ func InitKeys() KeyMap {
 			key.WithHelp("q", "quit"),
 		),
 		Next: key.NewBinding(
-			key.WithKeys("s", "ы"),
-			key.WithHelp("s", "skip"),
+			key.WithKeys("n", "т"),
+			key.WithHelp("n", "next"),
 		),
 
 		Up: key.NewBinding(
-			key.WithKeys("up", "k", "л"),
-			key.WithHelp("↑/k", fmt.Sprintf("+%v min", DefaultStepMinutes)),
+			key.WithKeys("up", "k", "л", "w", "ц"),
+			key.WithHelp("↑/w/k", fmt.Sprintf("+%v min", DefaultStepMinutes)),
 		),
 		Down: key.NewBinding(
-			key.WithKeys("down", "j", "о"),
-			key.WithHelp("↓/j", fmt.Sprintf("-%v min", DefaultStepMinutes)),
+			key.WithKeys("down", "j", "о", "s", "ы"),
+			key.WithHelp("↓/s/j", fmt.Sprintf("-%v min", DefaultStepMinutes)),
 		),
 		Left: key.NewBinding(
-			key.WithKeys("left", "h", "р"),
-			key.WithHelp("←/h", "to left session"),
+			key.WithKeys("left", "h", "р", "a", "ф"),
+			key.WithHelp("←/a/h", "to left session"),
 		),
 		Right: key.NewBinding(
-			key.WithKeys("right", "l", "д"),
-			key.WithHelp("→/l", "to right session"),
+			key.WithKeys("right", "l", "д", "d", "в"),
+			key.WithHelp("→/d/l", "to right session"),
 		),
 	}
 }
