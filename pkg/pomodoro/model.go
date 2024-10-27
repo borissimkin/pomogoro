@@ -130,17 +130,17 @@ func renderSessionTypes(p *Pomodoro) string {
 	s := ""
 
 	// todo: refactor (use SliceSessionTypes?)
-	settings := make([]*session.Session, 0, len(p.sessions))
+	sessions := make([]*session.Session, 0, len(p.sessions))
 
 	for _, value := range p.sessions {
-		settings = append(settings, value)
+		sessions = append(sessions, value)
 	}
 
-	sort.Slice(settings, func(i, j int) bool {
-		return settings[i].SessionType < settings[j].SessionType
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].SessionType < sessions[j].SessionType
 	})
 
-	for _, item := range settings {
+	for _, item := range sessions {
 		cursor := " "
 
 		var style = lipgloss.NewStyle().
