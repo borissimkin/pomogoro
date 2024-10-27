@@ -1,0 +1,87 @@
+package pomodoro
+
+import (
+	"pomogoro/pkg/session"
+	"pomogoro/pkg/settings"
+	"time"
+)
+
+type Pomodoro struct {
+	currentSessionType  session.Type
+	settings            *settings.Settings
+	sessions            map[session.Type]*session.Session
+	previousSessionType session.Type
+	completed           map[session.Type]int
+}
+
+func (p *Pomodoro) totalWorkSessions() int {
+	return p.completed[session.Work]
+}
+
+func (p *Pomodoro) currentSession() *session.Session {
+	return p.sessions[p.currentSessionType]
+}
+
+func (p *Pomodoro) sessionsBeforeLongBreak() int {
+	return p.settings.WorkSessionsUntilLongBreak - p.totalWorkSessions()%p.settings.WorkSessionsUntilLongBreak
+}
+
+func (p *Pomodoro) getDuration() time.Duration {
+	return p.settings.GetDuration(p.currentSessionType)
+}
+
+func (p *Pomodoro) getNextSessionType() session.Type {
+	if p.previousSessionType != session.Work {
+		return session.Work
+	}
+
+	if p.completed[session.Work]%p.settings.WorkSessionsUntilLongBreak == 0 {
+		return session.LongBreak
+	}
+
+	return session.Break
+}
+
+func (p *Pomodoro) nextSession() session.Type {
+	p.completed[p.currentSessionType]++
+	p.previousSessionType = p.currentSessionType
+
+	nextSession := p.getNextSessionType()
+	p.currentSessionType = nextSession
+
+	return nextSession
+}
+
+func (p *Pomodoro) setSession(session session.Type) {
+	p.currentSessionType = session
+}
+
+func NewPomodoro(settings *settings.Settings) *Pomodoro {
+	return &Pomodoro{
+		currentSessionType: session.Work,
+		completed:          make(map[session.Type]int),
+		settings:           settings,
+		sessions: map[session.Type]*session.Session{
+			session.Work:      &session.WorkSession,
+			session.Break:     &session.BreakSession,
+			session.LongBreak: &session.LongBreakSession,
+		},
+	}
+}
+
+func getSessionType(sessionType session.Type) session.Type {
+	sessionTypes := session.SliceSessionTypes()
+
+	minSessionType := sessionTypes[0]
+	maxSessionType := sessionTypes[len(sessionTypes)-1]
+
+	if sessionType < minSessionType {
+		return maxSessionType
+	}
+
+	if sessionType > maxSessionType {
+		return minSessionType
+	}
+
+	return sessionType
+}
