@@ -8,8 +8,9 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"pomogoro/pkg/keybinding"
 	"pomogoro/pkg/notification"
+	"pomogoro/pkg/pomodoro/keybinding"
+	"pomogoro/pkg/router"
 	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings"
 	"sort"
@@ -25,9 +26,10 @@ type Model struct {
 	keymap      keybinding.KeyMap
 	help        help.Model
 	pomodoro    *Pomodoro
+	router      *router.Router
 }
 
-func (m Model) Init() tea.Cmd {
+func (m *Model) Init() tea.Cmd {
 	return m.timer.Init()
 }
 
@@ -48,7 +50,9 @@ const (
 	progressBarMaxWidth = 43
 )
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// todo: прееделать на ресиверы
+
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.help.Width = msg.Width
@@ -77,28 +81,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		notifyParams := m.pomodoro.sessions[nextSession].NotifyParams
 		notification.Notify(notifyParams.Title, notifyParams.Message)
 		m.soundPlayer.Play()
-		setTime(&m, m.pomodoro.getDuration())
+		setTime(m, m.pomodoro.getDuration())
 		return m, nil
 
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keymap.Settings):
+			return m.router.To("settings")
 		case key.Matches(msg, m.keymap.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.Reset):
-			setTime(&m, m.pomodoro.getDuration())
+			setTime(m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Start, m.keymap.Stop):
 			return m, m.timer.Toggle()
 		case key.Matches(msg, m.keymap.Next):
 			m.pomodoro.nextSession()
-			setTime(&m, m.pomodoro.getDuration())
+			setTime(m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Right):
 			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType + 1))
-			setTime(&m, m.pomodoro.getDuration())
+			setTime(m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Left):
 			m.pomodoro.setSession(getSessionType(m.pomodoro.currentSessionType - 1))
-			setTime(&m, m.pomodoro.getDuration())
+			setTime(m, m.pomodoro.getDuration())
 		case key.Matches(msg, m.keymap.Up):
 			newTimeout := getIncreasedTime(m.timer.Timeout, keybinding.DefaultStepMinutes)
 			m.initTime += keybinding.DefaultStepMinutes * time.Minute
@@ -108,7 +114,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.initTime -= keybinding.DefaultStepMinutes * time.Minute
 			if newTimeout < 0 {
 				m.pomodoro.nextSession()
-				setTime(&m, m.pomodoro.getDuration())
+				setTime(m, m.pomodoro.getDuration())
 			} else {
 				m.timer.Timeout = newTimeout
 			}
@@ -192,7 +198,7 @@ func removeMilliseconds(time string) string {
 	return time
 }
 
-func renderTime(m Model) string {
+func renderTime(m *Model) string {
 	var style = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Bold(true)
 
 	if !m.timer.Running() {
@@ -223,7 +229,7 @@ func renderProgressBar(m *Model) string {
 	return m.progress.ViewAs(getPercent(m))
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
 	s += renderBreakLine()
@@ -233,7 +239,7 @@ func (m Model) View() string {
 
 	s += renderBreakLine()
 
-	s += renderProgressBar(&m)
+	s += renderProgressBar(m)
 
 	s += renderBreakLine()
 	s += renderBreakLine()
@@ -249,7 +255,7 @@ func (m Model) View() string {
 	return s
 }
 
-func NewModel() Model {
+func NewModel(r *router.Router) *Model {
 	soundPlayer := notification.NewSoundPlayer()
 	soundPlayer.InitSoundContext()
 
@@ -257,7 +263,7 @@ func NewModel() Model {
 
 	initTime := p.getDuration()
 
-	return Model{
+	model := &Model{
 		progress:    progress.New(progress.WithSolidFill(p.currentSession().BackgroundColor), progress.WithoutPercentage()),
 		timer:       timer.NewWithInterval(initTime, time.Millisecond),
 		initTime:    initTime,
@@ -265,5 +271,9 @@ func NewModel() Model {
 		soundPlayer: soundPlayer,
 		keymap:      keybinding.InitKeys(),
 		help:        help.New(),
+		router:      r,
 	}
+	model.keymap.Start.SetEnabled(false)
+
+	return model
 }

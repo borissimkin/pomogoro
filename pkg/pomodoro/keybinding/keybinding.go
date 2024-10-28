@@ -8,16 +8,17 @@ import (
 const DefaultStepMinutes = 1
 
 type KeyMap struct {
-	Start key.Binding
-	Stop  key.Binding
-	Reset key.Binding
-	Next  key.Binding
-	Up    key.Binding
-	Down  key.Binding
-	Left  key.Binding
-	Right key.Binding
-	Help  key.Binding
-	Quit  key.Binding
+	Start    key.Binding
+	Stop     key.Binding
+	Reset    key.Binding
+	Next     key.Binding
+	Up       key.Binding
+	Down     key.Binding
+	Left     key.Binding
+	Right    key.Binding
+	Settings key.Binding
+	Help     key.Binding
+	Quit     key.Binding
 }
 
 func (k KeyMap) ShortHelp() []key.Binding {
@@ -26,6 +27,7 @@ func (k KeyMap) ShortHelp() []key.Binding {
 		k.Stop,
 		k.Reset,
 		k.Next,
+		k.Settings,
 		k.Left,
 		k.Right,
 		k.Up,
@@ -39,7 +41,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Up, k.Down, k.Left, k.Right},
 		{k.Start, k.Stop, k.Reset, k.Next},
-		{k.Help, k.Quit},
+		{k.Help, k.Settings, k.Quit},
 	}
 }
 
@@ -85,6 +87,10 @@ func InitKeys() KeyMap {
 		Right: key.NewBinding(
 			key.WithKeys("right", "l", "д", "d", "в"),
 			key.WithHelp("→/d/l", "to right session"),
+		),
+		Settings: key.NewBinding(
+			key.WithKeys("i", "ш"),
+			key.WithHelp("i", "settings"),
 		),
 	}
 }
