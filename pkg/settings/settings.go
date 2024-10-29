@@ -7,14 +7,38 @@ import (
 
 type durations map[session.Type]time.Duration
 
+type Notification struct {
+	Sound bool
+	Push  bool
+}
+
+type AutoStart struct {
+	Break     bool
+	Work      bool
+	LongBreak bool
+}
+
 type Settings struct {
 	WorkSessionsUntilLongBreak int
 	Durations                  durations
+	ShowProgressBar            bool
+	Notification               Notification
+	AutoStart                  AutoStart
 }
 
-func NewSettings() *Settings {
-	return &Settings{
+func DefaultSettings() Settings {
+	return Settings{
 		WorkSessionsUntilLongBreak: 4,
+		ShowProgressBar:            true,
+		Notification: Notification{
+			Sound: true,
+			Push:  true,
+		},
+		AutoStart: AutoStart{
+			Break:     true,
+			LongBreak: true,
+			Work:      true,
+		},
 		Durations: durations{
 			session.Work:      time.Minute * 25,
 			session.Break:     time.Minute * 5,
@@ -26,6 +50,14 @@ func NewSettings() *Settings {
 	}
 }
 
+func NewSettings() *Settings {
+	s := DefaultSettings()
+
+	return &s
+}
+
 func (s *Settings) GetDuration(sessionType session.Type) time.Duration {
 	return s.Durations[sessionType]
 }
+
+// todo: Save to json & load
