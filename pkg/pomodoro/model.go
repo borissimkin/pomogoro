@@ -174,6 +174,7 @@ func renderBreakLine() string {
 	return "\n"
 }
 
+// todo: TRUNCATE на duration?
 func removeMilliseconds(time string) string {
 	zero := "0s"
 
