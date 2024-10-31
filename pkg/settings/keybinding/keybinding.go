@@ -35,6 +35,7 @@ func (k KeyMap) FullHelp() [][]key.Binding {
 
 func InitKeys() KeyMap {
 	return KeyMap{
+		// todo: add space keybingd
 		Enter: key.NewBinding(
 			key.WithKeys("enter"),
 			key.WithHelp("enter", "toggle"),

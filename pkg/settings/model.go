@@ -20,10 +20,21 @@ const (
 	numberItem kindFormItem = "number"
 )
 
+const (
+	minLimit = 1
+	maxLimit = 9999
+)
+
+type limits struct {
+	min int
+	max int
+}
+
 type formItem struct {
-	title string
-	value int
-	kind  kindFormItem
+	title  string
+	value  int
+	kind   kindFormItem
+	limits *limits
 }
 
 func (item *formItem) isToggle() bool {
@@ -52,7 +63,13 @@ func (item *formItem) increase() {
 		return
 	}
 
-	item.value++
+	value := item.value + 1
+
+	if item.limits != nil && item.limits.max < value {
+		return
+	}
+
+	item.value = value
 }
 
 func (item *formItem) decrease() {
@@ -60,7 +77,13 @@ func (item *formItem) decrease() {
 		item.value = 0
 	}
 
-	item.value--
+	value := item.value - 1
+
+	if item.limits != nil && item.limits.min > value {
+		return
+	}
+
+	item.value = value
 }
 
 //- [ ] устанавливать количества минут для всех типов сессий
@@ -93,28 +116,42 @@ func toInt(v bool) int {
 }
 
 func initFormMap(settings *Settings) formMap {
-	test := &formItem{
-		title: "minutes: Pomodoro",
-		value: int(settings.Durations[session.Work].Minutes()),
-		kind:  numberItem,
-	}
-
 	return formMap{
-		workMinutes: test,
+		workMinutes: &formItem{
+			title: "minutes: Pomodoro",
+			value: int(settings.Durations[session.Work].Minutes()),
+			kind:  numberItem,
+			limits: &limits{
+				min: minLimit,
+				max: maxLimit,
+			},
+		},
 		breakMinutes: &formItem{
 			title: "minutes: Break",
 			value: int(settings.Durations[session.Break].Minutes()),
 			kind:  numberItem,
+			limits: &limits{
+				min: minLimit,
+				max: maxLimit,
+			},
 		},
 		longBreakMinutes: &formItem{
 			title: "minutes: Long Break",
 			value: int(settings.Durations[session.LongBreak].Minutes()),
 			kind:  numberItem,
+			limits: &limits{
+				min: minLimit,
+				max: maxLimit,
+			},
 		},
 		workSessionsBeforeLongBreak: &formItem{
 			title: "Long Break interval",
 			value: settings.WorkSessionsUntilLongBreak,
 			kind:  numberItem,
+			limits: &limits{
+				min: 0,
+				max: maxLimit,
+			},
 		},
 		workAutoStart: &formItem{
 			title: "Auto start: Pomodoro",
@@ -220,7 +257,7 @@ var (
 			Foreground(lipgloss.Color("#FF0000"))
 )
 
-func toggleView(item *formItem) string {
+func toggleItemView(item *formItem) string {
 	s := ""
 
 	value := offStyle.Render("off")
@@ -234,19 +271,35 @@ func toggleView(item *formItem) string {
 	return s
 }
 
+func numberItemView(item *formItem) string {
+	if item.value <= 0 {
+		return fmt.Sprintf("%s %s", offStyle.Render("None"), item.title)
+	}
+
+	return fmt.Sprintf("%v %s", item.value, item.title)
+}
+
 func (m *Model) View() string {
+	// todo: margins
 	s := "  Settings"
 
 	s += "\n\n"
 
 	for index, listItem := range m.listItems() {
 		cursor := " "
+		view := ""
 
 		if index == m.cursor {
 			cursor = ">"
 		}
 
-		s += fmt.Sprintf("%s %s\n", cursor, toggleView(listItem))
+		if listItem.isToggle() {
+			view = toggleItemView(listItem)
+		} else if listItem.isNumber() {
+			view = numberItemView(listItem)
+		}
+
+		s += fmt.Sprintf("%s %s\n", cursor, view)
 	}
 
 	s += m.help.View(m.keymap)
