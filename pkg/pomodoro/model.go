@@ -29,8 +29,13 @@ type Model struct {
 	router      *router.Router
 }
 
+func (m *Model) initPomodoro() {
+	m.pomodoro = NewPomodoro(settings.NewSettings())
+}
+
 func (m *Model) Init() tea.Cmd {
-	return m.timer.Init()
+	m.initPomodoro()
+	return tea.Batch(tea.ClearScreen, m.timer.Init())
 }
 
 func getIncreasedTime(timeout time.Duration, minutes time.Duration) time.Duration {
@@ -234,6 +239,7 @@ func (m *Model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
 	s += renderBreakLine()
+	s += fmt.Sprintf("%v", m.pomodoro.settings.WorkSessionsUntilLongBreak)
 	s += renderBreakLine()
 
 	s += renderTime(m)

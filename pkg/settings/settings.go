@@ -51,6 +51,11 @@ func DefaultSettings() Settings {
 }
 
 func NewSettings() *Settings {
+	old := newStorage().Read()
+	if old != nil {
+		return old
+	}
+
 	s := DefaultSettings()
 
 	return &s

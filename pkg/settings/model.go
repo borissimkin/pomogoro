@@ -9,6 +9,7 @@ import (
 	"pomogoro/pkg/router"
 	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings/keybinding"
+	"time"
 )
 
 // todo: reset settings
@@ -115,6 +116,10 @@ func toInt(v bool) int {
 	return 0
 }
 
+func toBool(v int) bool {
+	return v == 1
+}
+
 func initFormMap(settings *Settings) formMap {
 	return formMap{
 		workMinutes: &formItem{
@@ -186,10 +191,6 @@ func initFormMap(settings *Settings) formMap {
 	}
 }
 
-type ListItem interface {
-	View() string
-}
-
 type Model struct {
 	formMap  formMap
 	settings *Settings
@@ -223,6 +224,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.Back):
+			m.save()
 			return m.router.To("pomodoro")
 		case key.Matches(msg, m.keymap.Quit):
 			return m, tea.Quit
@@ -246,8 +248,35 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+func mapToSettings(form formMap) Settings {
+	return Settings{
+		WorkSessionsUntilLongBreak: form.workSessionsBeforeLongBreak.value,
+		Durations: durations{
+			session.Work:      time.Minute * time.Duration(form.workMinutes.value),
+			session.Break:     time.Minute * time.Duration(form.breakMinutes.value),
+			session.LongBreak: time.Minute * time.Duration(form.longBreakMinutes.value),
+		},
+		ShowProgressBar: toBool(form.showProgressBar.value),
+		Notification: Notification{
+			Sound: toBool(form.soundNotification.value),
+			Push:  toBool(form.pushNotification.value),
+		},
+		AutoStart: AutoStart{
+			Work:      toBool(form.workAutoStart.value),
+			Break:     toBool(form.breakAutoStart.value),
+			LongBreak: toBool(form.longBreakAutoStart.value),
+		},
+	}
+}
+
+func (m *Model) save() {
+	settings := mapToSettings(m.formMap)
+
+	_ = newStorage().Save(settings)
+}
+
 func (m *Model) Init() tea.Cmd {
-	return nil
+	return tea.ClearScreen
 }
 
 var (

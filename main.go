@@ -13,8 +13,8 @@ func main() {
 	r := router.NewRouter()
 
 	routes := []router.Route{
-		router.NewRoute("settings", settings.NewModel(&r)),
 		router.NewRoute("pomodoro", pomodoro.NewModel(&r)),
+		router.NewRoute("settings", settings.NewModel(&r)),
 	}
 
 	r.SetRoutes(routes)
