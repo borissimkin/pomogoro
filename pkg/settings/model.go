@@ -12,8 +12,6 @@ import (
 	"time"
 )
 
-// todo: reset settings
-
 type kindFormItem string
 
 const (
@@ -86,14 +84,6 @@ func (item *formItem) decrease() {
 
 	item.value = value
 }
-
-//- [ ] устанавливать количества минут для всех типов сессий
-//- [ ] тогл автовспроизведения следующей сессии
-//- [ ] количество рабочих сессий до длинного отдыха
-//- [ ] тогл оповещения
-//- [ ] отдельный тогл на звук
-//- [ ] сохранять настройки в файл и подгружать при старте
-//- [ ] показывать прогресс бар?
 
 type formMap struct {
 	workMinutes                 *formItem
@@ -200,6 +190,13 @@ type Model struct {
 	router   *router.Router
 }
 
+func (m *Model) resetSettings() {
+	settings := DefaultSettings()
+
+	m.settings = &settings
+	m.formMap = initFormMap(&settings)
+}
+
 func (m *Model) listItems() []*formItem {
 	return []*formItem{
 		m.formMap.workMinutes,
@@ -223,6 +220,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
+		case key.Matches(msg, m.keymap.Reset):
+
 		case key.Matches(msg, m.keymap.Back):
 			m.save()
 			return m.router.To("pomodoro")
