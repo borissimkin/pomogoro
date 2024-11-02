@@ -47,5 +47,6 @@ func (r *Router) To(key RouteKey) (tea.Model, tea.Cmd) {
 
 	route := r.Routes[key]
 
+	// todo: батчить клир скрин?
 	return route.Value, route.Value.Init()
 }
