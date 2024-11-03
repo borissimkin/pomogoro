@@ -5,6 +5,7 @@ import (
 )
 
 type KeyMap struct {
+	Help  key.Binding
 	Reset key.Binding
 	Enter key.Binding
 	Back  key.Binding
@@ -17,6 +18,7 @@ type KeyMap struct {
 
 func (k KeyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
+		k.Help,
 		k.Enter,
 		k.Back,
 		k.Left,
@@ -30,8 +32,8 @@ func (k KeyMap) ShortHelp() []key.Binding {
 
 func (k KeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Back},
 		{k.Up, k.Down, k.Left, k.Right},
+		{k.Enter, k.Reset, k.Back, k.Help, k.Quit},
 	}
 }
 
@@ -39,10 +41,10 @@ func InitKeys() KeyMap {
 	return KeyMap{
 		Reset: key.NewBinding(
 			key.WithKeys("r", "к"),
-			key.WithHelp("r", "reset all to defaults")),
+			key.WithHelp("r", "reset to defaults")),
 		Enter: key.NewBinding(
 			key.WithKeys("enter", " "),
-			key.WithHelp("enter/space", "toggle"),
+			key.WithHelp("space", "toggle"),
 		),
 		Back: key.NewBinding(
 			key.WithKeys("esc", "b", "и"),
@@ -67,6 +69,10 @@ func InitKeys() KeyMap {
 		Right: key.NewBinding(
 			key.WithKeys("right", "l", "д", "d", "в"),
 			key.WithHelp("→/d/l", "increase"),
+		),
+		Help: key.NewBinding(
+			key.WithKeys("/", "?"),
+			key.WithHelp("?", "help"),
 		),
 	}
 }

@@ -222,6 +222,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, m.keymap.Reset):
 			m.resetSettings()
+		case key.Matches(msg, m.keymap.Help):
+			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.Back):
 			m.save()
 			return m.router.To("pomodoro")
@@ -308,8 +310,13 @@ func numberItemView(item *formItem) string {
 }
 
 func (m *Model) View() string {
-	// todo: margins
-	s := lipgloss.NewStyle().MarginLeft(2).Render("Settings")
+	s := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		MarginLeft(2).
+		PaddingLeft(1).
+		PaddingRight(1).
+		Render("Settings")
 
 	s += "\n"
 

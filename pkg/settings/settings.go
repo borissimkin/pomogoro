@@ -40,12 +40,12 @@ func DefaultSettings() Settings {
 			Work:      true,
 		},
 		Durations: durations{
-			session.Work:      time.Minute * 25,
-			session.Break:     time.Minute * 5,
-			session.LongBreak: time.Minute * 15,
-			//session.Work:      time.Second * 4,
-			//session.Break:     time.Second * 3,
-			//session.LongBreak: time.Second * 7,
+			//session.Work:      time.Minute * 25,
+			//session.Break:     time.Minute * 5,
+			//session.LongBreak: time.Minute * 15,
+			session.Work:      time.Second * 4,
+			session.Break:     time.Second * 3,
+			session.LongBreak: time.Second * 7,
 		},
 	}
 }

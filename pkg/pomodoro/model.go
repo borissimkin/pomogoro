@@ -35,6 +35,7 @@ func (m *Model) initPomodoro() {
 
 func (m *Model) Init() tea.Cmd {
 	m.initPomodoro()
+	setTime(m, m.pomodoro.getDuration())
 	return tea.Batch(tea.ClearScreen, m.timer.Init())
 }
 
@@ -239,7 +240,6 @@ func (m *Model) View() string {
 	s := renderSessionTypes(m.pomodoro)
 
 	s += renderBreakLine()
-	s += fmt.Sprintf("%v", m.pomodoro.settings.WorkSessionsUntilLongBreak)
 	s += renderBreakLine()
 
 	s += renderTime(m)

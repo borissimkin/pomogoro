@@ -26,13 +26,13 @@ func (k KeyMap) ShortHelp() []key.Binding {
 		k.Start,
 		k.Stop,
 		k.Reset,
+		k.Help,
 		k.Next,
-		k.Settings,
 		k.Left,
 		k.Right,
 		k.Up,
 		k.Down,
-		k.Help,
+		k.Settings,
 		k.Quit,
 	}
 }

@@ -1,15 +1,22 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
+	"pomogoro/pkg/notification"
 	"pomogoro/pkg/pomodoro"
 	"pomogoro/pkg/router"
 	"pomogoro/pkg/settings"
 )
 
+//go:embed assets/ring.mp3
+var ringAsset embed.FS
+
 func main() {
+	notification.SoundAsset = ringAsset
+
 	r := router.NewRouter()
 
 	routes := []router.Route{

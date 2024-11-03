@@ -2,12 +2,14 @@ package notification
 
 import (
 	"bytes"
+	"embed"
 	"github.com/ebitengine/oto/v3"
 	"github.com/hajimehoshi/go-mp3"
 	"io"
-	"os"
 	"time"
 )
+
+var SoundAsset embed.FS
 
 type Player struct {
 	player      *oto.Player
@@ -19,9 +21,8 @@ func NewSoundPlayer() *Player {
 		initialized: false,
 	}
 }
-
 func (s *Player) InitSoundContext() {
-	fileBytes, err := os.ReadFile("./assets/ring.mp3")
+	fileBytes, err := SoundAsset.ReadFile("./assets/ring.mp3")
 	if err != nil {
 		return
 	}
