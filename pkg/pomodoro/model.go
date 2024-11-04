@@ -85,8 +85,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case timer.TimeoutMsg:
 		nextSession := m.pomodoro.nextSession()
 		notifyParams := m.pomodoro.sessions[nextSession].NotifyParams
-		notification.Notify(notifyParams.Title, notifyParams.Message)
-		m.soundPlayer.Play()
+		if m.pomodoro.settings.Notification.Push {
+			notification.Notify(notifyParams.Title, notifyParams.Message)
+		}
+		if m.pomodoro.settings.Notification.Sound {
+			m.soundPlayer.Play()
+		}
 		setTime(m, m.pomodoro.getDuration())
 		return m, nil
 
@@ -212,7 +216,7 @@ func renderTime(m *Model) string {
 		style = style.Faint(true)
 	}
 
-	// remove milliseconds cause interval with time.Second has bug
+	// todo: remove milliseconds cause interval with time.Second has bug
 	return style.Render(removeMilliseconds(m.timer.View()))
 }
 
@@ -246,16 +250,19 @@ func (m *Model) View() string {
 
 	s += renderBreakLine()
 
-	s += renderProgressBar(m)
+	if m.pomodoro.settings.ShowProgressBar {
+		s += renderProgressBar(m)
+		s += renderBreakLine()
+	}
 
 	s += renderBreakLine()
-	s += renderBreakLine()
-
 	s += renderTotalSessions(m.pomodoro)
 	s += renderBreakLine()
-	s += renderSessionsBeforeLongBreak(m.pomodoro)
 
-	s += renderBreakLine()
+	if m.pomodoro.settings.WorkSessionsUntilLongBreak > 0 {
+		s += renderSessionsBeforeLongBreak(m.pomodoro)
+		s += renderBreakLine()
+	}
 
 	s += m.help.View(m.keymap)
 

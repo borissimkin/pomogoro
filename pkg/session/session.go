@@ -38,7 +38,7 @@ var BreakSession = Session{
 	Title:           "Short Break",
 	BackgroundColor: "#38858a",
 	NotifyParams: &notification.NotifyParams{
-		Title:   "Break",
+		Title:   "Short Break",
 		Message: "Take a short break to recharge and reset.",
 	},
 }
@@ -48,7 +48,7 @@ var LongBreakSession = Session{
 	Title:           "Long Break",
 	BackgroundColor: "#397097",
 	NotifyParams: &notification.NotifyParams{
-		Title:   "Rest",
+		Title:   "Long Break",
 		Message: "Enjoy a longer break to fully unwind and refresh.",
 	},
 }

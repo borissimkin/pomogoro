@@ -35,6 +35,10 @@ func (p *Pomodoro) getNextSessionType() session.Type {
 		return session.Work
 	}
 
+	if p.settings.WorkSessionsUntilLongBreak <= 0 {
+		return session.Break
+	}
+
 	if p.completed[session.Work]%p.settings.WorkSessionsUntilLongBreak == 0 {
 		return session.LongBreak
 	}
