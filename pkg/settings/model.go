@@ -13,11 +13,13 @@ import (
 	"time"
 )
 
-type kindFormItem string
-
-const (
-	toggleItem kindFormItem = "toggle"
-	numberItem kindFormItem = "number"
+var (
+	settingsStyle = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		MarginLeft(2).
+		PaddingLeft(1).
+		PaddingRight(1)
 )
 
 const (
@@ -28,62 +30,6 @@ const (
 type limits struct {
 	min int
 	max int
-}
-
-type formItem struct {
-	title  string
-	value  int
-	kind   kindFormItem
-	limits *limits
-}
-
-func (item *formItem) isToggle() bool {
-	return item.kind == toggleItem
-}
-
-func (item *formItem) isNumber() bool {
-	return item.kind == numberItem
-}
-
-func (item *formItem) enter() {
-	if !item.isToggle() {
-		return
-	}
-
-	if item.value >= 1 {
-		item.value = 0
-	} else {
-		item.value = 1
-	}
-}
-
-func (item *formItem) increase() {
-	if item.isToggle() {
-		item.value = 1
-		return
-	}
-
-	value := item.value + 1
-
-	if item.limits != nil && item.limits.max < value {
-		return
-	}
-
-	item.value = value
-}
-
-func (item *formItem) decrease() {
-	if item.isToggle() {
-		item.value = 0
-	}
-
-	value := item.value - 1
-
-	if item.limits != nil && item.limits.min > value {
-		return
-	}
-
-	item.value = value
 }
 
 type formMap struct {
@@ -231,11 +177,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case key.Matches(msg, m.keymap.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.Enter):
-			m.currentItem().enter()
+			m.currentItem().Enter()
 		case key.Matches(msg, m.keymap.Left):
-			m.currentItem().decrease()
+			m.currentItem().Decrease()
 		case key.Matches(msg, m.keymap.Right):
-			m.currentItem().increase()
+			m.currentItem().Increase()
 		case key.Matches(msg, m.keymap.Up):
 			if m.cursor > 0 {
 				m.cursor--
@@ -281,61 +227,19 @@ func (m *Model) Init() tea.Cmd {
 	return nil
 }
 
-var (
-	onStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00FF00"))
-	offStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FF0000"))
-)
-
-func toggleItemView(item *formItem) string {
-	s := ""
-
-	value := offStyle.Render("off")
-
-	if item.value == 1 {
-		value = onStyle.Render("on")
-	}
-
-	s += fmt.Sprintf("%s %s", value, item.title)
-
-	return s
-}
-
-func numberItemView(item *formItem) string {
-	if item.value <= 0 {
-		return fmt.Sprintf("%s %s", offStyle.Render("None"), item.title)
-	}
-
-	return fmt.Sprintf("%v %s", item.value, item.title)
-}
-
 func (m *Model) View() string {
-	s := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		MarginLeft(2).
-		PaddingLeft(1).
-		PaddingRight(1).
-		Render("Settings")
+	s := settingsStyle.Render("Settings")
 
 	s += "\n"
 
 	for index, listItem := range m.listItems() {
 		cursor := " "
-		view := ""
 
 		if index == m.cursor {
 			cursor = ">"
 		}
 
-		if listItem.isToggle() {
-			view = toggleItemView(listItem)
-		} else if listItem.isNumber() {
-			view = numberItemView(listItem)
-		}
-
-		s += fmt.Sprintf("%s %s\n", cursor, view)
+		s += fmt.Sprintf("%s %s\n", cursor, listItem.View())
 	}
 
 	s += m.help.View(m.keymap)

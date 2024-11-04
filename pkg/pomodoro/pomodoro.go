@@ -3,6 +3,7 @@ package pomodoro
 import (
 	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings"
+	"sort"
 	"time"
 )
 
@@ -73,8 +74,22 @@ func NewPomodoro(settings *settings.Settings) *Pomodoro {
 	}
 }
 
+func (p *Pomodoro) SliceSessions() []*session.Session {
+	sessions := make([]*session.Session, 0, len(p.sessions))
+
+	for _, value := range p.sessions {
+		sessions = append(sessions, value)
+	}
+
+	sort.Slice(sessions, func(i, j int) bool {
+		return sessions[i].SessionType < sessions[j].SessionType
+	})
+
+	return sessions
+}
+
 func getSessionType(sessionType session.Type) session.Type {
-	sessionTypes := session.SliceSessionTypes()
+	sessionTypes := session.Types()
 
 	minSessionType := sessionTypes[0]
 	maxSessionType := sessionTypes[len(sessionTypes)-1]

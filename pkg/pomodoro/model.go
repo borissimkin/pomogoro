@@ -1,21 +1,21 @@
 package pomodoro
 
 import (
-	"fmt"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"pomogoro/pkg/app"
 	"pomogoro/pkg/notification"
 	"pomogoro/pkg/pomodoro/keybinding"
 	"pomogoro/pkg/router"
-	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings"
-	"sort"
 	"time"
+)
+
+const (
+	progressBarMaxWidth = 43
 )
 
 type Model struct {
@@ -51,12 +51,6 @@ func setTime(m *Model, duration time.Duration) {
 	m.timer.Timeout = duration
 	m.initTime = duration
 }
-
-const (
-	progressBarMaxWidth = 43
-)
-
-// todo: прееделать на ресиверы
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -137,119 +131,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, nil
-}
-
-func renderTotalSessions(p *Pomodoro) string {
-	return fmt.Sprintf("Total Work sessions: %v", p.totalWorkSessions())
-}
-
-func renderSessionsBeforeLongBreak(p *Pomodoro) string {
-	return fmt.Sprintf("Sessions left before the long break: %v", p.sessionsBeforeLongBreak())
-}
-
-func renderSessionTypes(p *Pomodoro) string {
-	s := ""
-
-	// todo: refactor (use SliceSessionTypes?)
-	sessions := make([]*session.Session, 0, len(p.sessions))
-
-	for _, value := range p.sessions {
-		sessions = append(sessions, value)
-	}
-
-	sort.Slice(sessions, func(i, j int) bool {
-		return sessions[i].SessionType < sessions[j].SessionType
-	})
-
-	for _, item := range sessions {
-		cursor := " "
-
-		var style = lipgloss.NewStyle().
-			AlignHorizontal(lipgloss.Center).
-			MarginRight(1).
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color(item.BackgroundColor)).
-			Padding(0, 1)
-
-		if item.SessionType != p.currentSessionType {
-			style = style.
-				Faint(true)
-		} else {
-			cursor = "*"
-		}
-
-		s += style.Render(fmt.Sprintf("%s %s", cursor, item.Title))
-	}
-
-	return s
-}
-
-// todo: pass count
-func renderBreakLine() string {
-	return "\n"
-}
-
-func formatTime(t time.Duration) string {
-	return t.Truncate(time.Second).String()
-}
-
-func renderTime(m *Model) string {
-	var style = lipgloss.NewStyle().Width(40).Align(lipgloss.Center).Bold(true)
-
-	if !m.timer.Running() {
-		style = style.Faint(true)
-	}
-
-	return style.Render(formatTime(m.timer.Timeout))
-}
-
-func getPercent(m *Model) float64 {
-	return float64(m.initTime-m.timer.Timeout) / float64(m.initTime)
-}
-
-func isPause(m *Model) bool {
-	return m.keymap.Start.Enabled()
-}
-
-func renderProgressBar(m *Model) string {
-	color := m.pomodoro.currentSession().BackgroundColor
-
-	if isPause(m) {
-		color = "#4b4453" // todo
-	}
-
-	m.progress.FullColor = color
-
-	return m.progress.ViewAs(getPercent(m))
-}
-
-func (m *Model) View() string {
-	s := renderSessionTypes(m.pomodoro)
-
-	s += renderBreakLine()
-	s += renderBreakLine()
-
-	s += renderTime(m)
-
-	s += renderBreakLine()
-
-	if m.pomodoro.settings.ShowProgressBar {
-		s += renderProgressBar(m)
-		s += renderBreakLine()
-	}
-
-	s += renderBreakLine()
-	s += renderTotalSessions(m.pomodoro)
-	s += renderBreakLine()
-
-	if m.pomodoro.settings.WorkSessionsUntilLongBreak > 0 {
-		s += renderSessionsBeforeLongBreak(m.pomodoro)
-		s += renderBreakLine()
-	}
-
-	s += m.help.View(m.keymap)
-
-	return s
 }
 
 func NewModel(r *router.Router) *Model {

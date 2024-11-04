@@ -20,8 +20,6 @@ const (
 	LongBreak Type = 3
 )
 
-// todo: move colors to styles?
-
 var WorkSession = Session{
 	SessionType:     Work,
 	Title:           "Pomodoro",
@@ -52,7 +50,7 @@ var LongBreakSession = Session{
 	},
 }
 
-func SliceSessionTypes() []Type {
+func Types() []Type {
 	sessionTypes := []Type{Work, Break, LongBreak}
 
 	sort.Slice(sessionTypes, func(i, j int) bool {
