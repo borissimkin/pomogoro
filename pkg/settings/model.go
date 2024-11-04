@@ -150,17 +150,17 @@ func initFormMap(settings *Settings) formMap {
 		},
 		workAutoStart: &formItem{
 			title: "Auto start: Pomodoro",
-			value: toInt(settings.AutoStart.Work),
+			value: toInt(settings.AutoStart[session.Work]),
 			kind:  toggleItem,
 		},
 		breakAutoStart: &formItem{
 			title: "Auto start: Break",
-			value: toInt(settings.AutoStart.Break),
+			value: toInt(settings.AutoStart[session.Break]),
 			kind:  toggleItem,
 		},
 		longBreakAutoStart: &formItem{
 			title: "Auto start: Long Break",
-			value: toInt(settings.AutoStart.LongBreak),
+			value: toInt(settings.AutoStart[session.LongBreak]),
 			kind:  toggleItem,
 		},
 		soundNotification: &formItem{
@@ -263,9 +263,9 @@ func mapToSettings(form formMap) Settings {
 			Push:  toBool(form.pushNotification.value),
 		},
 		AutoStart: AutoStart{
-			Work:      toBool(form.workAutoStart.value),
-			Break:     toBool(form.breakAutoStart.value),
-			LongBreak: toBool(form.longBreakAutoStart.value),
+			session.Work:      toBool(form.workAutoStart.value),
+			session.Break:     toBool(form.breakAutoStart.value),
+			session.LongBreak: toBool(form.longBreakAutoStart.value),
 		},
 	}
 }

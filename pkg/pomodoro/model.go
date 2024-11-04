@@ -92,6 +92,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.soundPlayer.Play()
 		}
 		setTime(m, m.pomodoro.getDuration())
+
+		if !m.pomodoro.settings.AutoStart[nextSession] {
+			return m, m.timer.Stop()
+		}
+
 		return m, nil
 
 	case tea.KeyMsg:

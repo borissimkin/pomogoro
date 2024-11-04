@@ -12,11 +12,7 @@ type Notification struct {
 	Push  bool
 }
 
-type AutoStart struct {
-	Break     bool
-	Work      bool
-	LongBreak bool
-}
+type AutoStart map[session.Type]bool
 
 type Settings struct {
 	WorkSessionsUntilLongBreak int
@@ -35,17 +31,14 @@ func DefaultSettings() Settings {
 			Push:  true,
 		},
 		AutoStart: AutoStart{
-			Break:     true,
-			LongBreak: true,
-			Work:      true,
+			session.Work:      true,
+			session.Break:     true,
+			session.LongBreak: true,
 		},
 		Durations: durations{
-			//session.Work:      time.Minute * 25,
-			//session.Break:     time.Minute * 5,
-			//session.LongBreak: time.Minute * 15,
-			session.Work:      time.Second * 4,
-			session.Break:     time.Second * 3,
-			session.LongBreak: time.Second * 7,
+			session.Work:      time.Minute * 25,
+			session.Break:     time.Minute * 5,
+			session.LongBreak: time.Minute * 15,
 		},
 	}
 }
@@ -64,5 +57,3 @@ func NewSettings() *Settings {
 func (s *Settings) GetDuration(sessionType session.Type) time.Duration {
 	return s.Durations[sessionType]
 }
-
-// todo: Save to json & load
