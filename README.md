@@ -1,4 +1,4 @@
-![gopher dancing](./assets/gopher-shaking.gif)
+![gopher dancing](images/gopher-shaking.gif)
 
 добавить в ридми кейбиндинги для удобства?
 
@@ -39,7 +39,7 @@
   - [ ] звуковое уведомление
   - [ ] отстутсвие длинных отдыхов
 
-- [ ] не работает звонок в билде
+- [x] не работает звонок в билде
 
 - **После мвп**
 - https://github.com/charmbracelet/lipgloss

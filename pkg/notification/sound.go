@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var SoundAsset embed.FS
+var Assets embed.FS
 
 type Player struct {
 	player      *oto.Player
@@ -22,7 +22,7 @@ func NewSoundPlayer() *Player {
 	}
 }
 func (s *Player) InitSoundContext() {
-	fileBytes, err := SoundAsset.ReadFile("./assets/ring.mp3")
+	fileBytes, err := Assets.ReadFile("assets/ring.mp3")
 	if err != nil {
 		return
 	}

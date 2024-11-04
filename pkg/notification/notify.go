@@ -8,5 +8,5 @@ type NotifyParams struct {
 }
 
 func Notify(title string, message string) {
-	_ = beeep.Notify(title, message, "assets/information.png")
+	_ = beeep.Notify(title, message, "")
 }

@@ -11,11 +11,11 @@ import (
 	"pomogoro/pkg/settings"
 )
 
-//go:embed assets/ring.mp3
-var ringAsset embed.FS
+//go:embed assets
+var assets embed.FS
 
 func main() {
-	notification.SoundAsset = ringAsset
+	notification.Assets = assets
 
 	r := router.NewRouter()
 
