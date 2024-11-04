@@ -2,7 +2,9 @@ package settings
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type storage interface {
@@ -10,7 +12,10 @@ type storage interface {
 	Read() *Settings
 }
 
-const filePath = "settings.json"
+const (
+	folder   = "pomogoro"
+	filename = "settings.json"
+)
 
 var saved *Settings = nil
 
@@ -22,7 +27,18 @@ func newStorage() storage {
 	return &jsonStorage{}
 }
 
-// todo: os.UserConfigDir
+func getPath() string {
+	path, _ := os.UserConfigDir()
+
+	return filepath.Join(path, folder)
+}
+
+func getFullPath() string {
+	fullPath := filepath.Join(getPath(), filename)
+
+	return fullPath
+}
+
 func (s *jsonStorage) Save(settings Settings) error {
 	saved = &settings
 
@@ -31,7 +47,15 @@ func (s *jsonStorage) Save(settings Settings) error {
 		panic(err)
 	}
 
-	err = os.WriteFile(filePath, bytes, 0644)
+	test := filepath.Dir(getPath())
+	fmt.Printf(test)
+
+	err = os.MkdirAll(getPath(), 0700)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(getFullPath(), bytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -40,14 +64,14 @@ func (s *jsonStorage) Save(settings Settings) error {
 }
 
 func (s *jsonStorage) Read() *Settings {
-	file, err := os.ReadFile(filePath)
+	file, err := os.ReadFile(getFullPath())
 	if err != nil {
 		return saved
 	}
 
 	err = json.Unmarshal(file, &saved)
 	if err != nil {
-		panic(err)
+		return saved
 	}
 
 	return saved
