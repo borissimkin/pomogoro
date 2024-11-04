@@ -8,13 +8,13 @@ import (
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"pomogoro/pkg/app"
 	"pomogoro/pkg/notification"
 	"pomogoro/pkg/pomodoro/keybinding"
 	"pomogoro/pkg/router"
 	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings"
 	"sort"
-	"strings"
 	"time"
 )
 
@@ -102,7 +102,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, m.keymap.Settings):
-			return m.router.To("settings")
+			return m.router.To(app.SettingsPageName)
 		case key.Matches(msg, m.keymap.Help):
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.Quit):
@@ -189,29 +189,8 @@ func renderBreakLine() string {
 	return "\n"
 }
 
-// todo: TRUNCATE на duration?
-func removeMilliseconds(time string) string {
-	zero := "0s"
-
-	if time == zero {
-		return time
-	}
-
-	pointer := "."
-
-	part := strings.Split(time, pointer)[0]
-
-	hasMs := strings.Contains(part, "ms")
-
-	if strings.Contains(time, pointer) {
-		return part + "s"
-	}
-
-	if hasMs {
-		return zero
-	}
-
-	return time
+func formatTime(t time.Duration) string {
+	return t.Truncate(time.Second).String()
 }
 
 func renderTime(m *Model) string {
@@ -221,8 +200,7 @@ func renderTime(m *Model) string {
 		style = style.Faint(true)
 	}
 
-	// todo: remove milliseconds cause interval with time.Second has bug
-	return style.Render(removeMilliseconds(m.timer.View()))
+	return style.Render(formatTime(m.timer.Timeout))
 }
 
 func getPercent(m *Model) float64 {

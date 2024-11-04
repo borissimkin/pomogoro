@@ -5,6 +5,7 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
+	"pomogoro/pkg/app"
 	"pomogoro/pkg/notification"
 	"pomogoro/pkg/pomodoro"
 	"pomogoro/pkg/router"
@@ -20,8 +21,8 @@ func main() {
 	r := router.NewRouter()
 
 	routes := []router.Route{
-		router.NewRoute("pomodoro", pomodoro.NewModel(&r)),
-		router.NewRoute("settings", settings.NewModel(&r)),
+		router.NewRoute(app.MainPageName, pomodoro.NewModel(&r)),
+		router.NewRoute(app.SettingsPageName, settings.NewModel(&r)),
 	}
 
 	r.SetRoutes(routes)

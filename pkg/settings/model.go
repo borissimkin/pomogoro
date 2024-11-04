@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"pomogoro/pkg/app"
 	"pomogoro/pkg/router"
 	"pomogoro/pkg/session"
 	"pomogoro/pkg/settings/keybinding"
@@ -226,7 +227,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.help.ShowAll = !m.help.ShowAll
 		case key.Matches(msg, m.keymap.Back):
 			m.save()
-			return m.router.To("pomodoro")
+			return m.router.To(app.MainPageName)
 		case key.Matches(msg, m.keymap.Quit):
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.Enter):
@@ -277,7 +278,7 @@ func (m *Model) save() {
 }
 
 func (m *Model) Init() tea.Cmd {
-	return tea.ClearScreen
+	return nil
 }
 
 var (

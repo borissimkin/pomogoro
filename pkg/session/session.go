@@ -9,7 +9,6 @@ type Type int
 
 type Session struct {
 	SessionType     Type
-	Emoji           string // todo: remove?
 	Title           string
 	BackgroundColor string
 	NotifyParams    *notification.NotifyParams
