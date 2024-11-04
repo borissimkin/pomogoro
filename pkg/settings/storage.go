@@ -2,7 +2,6 @@ package settings
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -46,9 +45,6 @@ func (s *jsonStorage) Save(settings Settings) error {
 	if err != nil {
 		panic(err)
 	}
-
-	test := filepath.Dir(getPath())
-	fmt.Printf(test)
 
 	err = os.MkdirAll(getPath(), 0700)
 	if err != nil {
