@@ -26,8 +26,6 @@ type formItem struct {
 	limits *limits
 }
 
-// todo: убрать эти isToggle сделать на интерфейсах?
-
 func (item *formItem) isToggle() bool {
 	return item.kind == toggleItem
 }
