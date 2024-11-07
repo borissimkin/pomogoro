@@ -34,6 +34,6 @@ pomogoro
 - **Flexible Time Adjustment**: Modify session durations on-the-fly to suit your needs.
 
 
-## Technology
+## Technologies
 
 Pomogoro is built in Go, utilizing the [Bubbletea](https://github.com/charmbracelet/bubbletea) library for a streamlined and interactive command-line
