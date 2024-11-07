@@ -1,4 +1,4 @@
-module pomogoro
+module github.com/borissimkin/pomogoro
 
 go 1.23.1
 

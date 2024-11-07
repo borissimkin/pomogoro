@@ -1,8 +1,8 @@
 package pomodoro
 
 import (
-	"pomogoro/pkg/session"
-	"pomogoro/pkg/settings"
+	"github.com/borissimkin/pomogoro/pkg/session"
+	"github.com/borissimkin/pomogoro/pkg/settings"
 	"sort"
 	"time"
 )

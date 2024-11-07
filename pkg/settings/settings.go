@@ -1,7 +1,7 @@
 package settings
 
 import (
-	"pomogoro/pkg/session"
+	"github.com/borissimkin/pomogoro/pkg/session"
 	"time"
 )
 

@@ -1,7 +1,7 @@
 package session
 
 import (
-	"pomogoro/pkg/notification"
+	"github.com/borissimkin/pomogoro/pkg/notification"
 	"sort"
 )
 

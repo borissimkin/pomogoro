@@ -2,14 +2,14 @@ package settings
 
 import (
 	"fmt"
+	"github.com/borissimkin/pomogoro/pkg/app"
+	"github.com/borissimkin/pomogoro/pkg/router"
+	"github.com/borissimkin/pomogoro/pkg/session"
+	"github.com/borissimkin/pomogoro/pkg/settings/keybinding"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"pomogoro/pkg/app"
-	"pomogoro/pkg/router"
-	"pomogoro/pkg/session"
-	"pomogoro/pkg/settings/keybinding"
 	"time"
 )
 

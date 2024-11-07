@@ -3,13 +3,13 @@ package main
 import (
 	"embed"
 	"fmt"
+	"github.com/borissimkin/pomogoro/pkg/app"
+	"github.com/borissimkin/pomogoro/pkg/notification"
+	"github.com/borissimkin/pomogoro/pkg/pomodoro"
+	"github.com/borissimkin/pomogoro/pkg/router"
+	"github.com/borissimkin/pomogoro/pkg/settings"
 	tea "github.com/charmbracelet/bubbletea"
 	"os"
-	"pomogoro/pkg/app"
-	"pomogoro/pkg/notification"
-	"pomogoro/pkg/pomodoro"
-	"pomogoro/pkg/router"
-	"pomogoro/pkg/settings"
 )
 
 //go:embed assets

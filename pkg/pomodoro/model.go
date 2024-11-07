@@ -1,16 +1,16 @@
 package pomodoro
 
 import (
+	"github.com/borissimkin/pomogoro/pkg/app"
+	"github.com/borissimkin/pomogoro/pkg/notification"
+	"github.com/borissimkin/pomogoro/pkg/pomodoro/keybinding"
+	"github.com/borissimkin/pomogoro/pkg/router"
+	"github.com/borissimkin/pomogoro/pkg/settings"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
-	"pomogoro/pkg/app"
-	"pomogoro/pkg/notification"
-	"pomogoro/pkg/pomodoro/keybinding"
-	"pomogoro/pkg/router"
-	"pomogoro/pkg/settings"
 	"time"
 )
 
